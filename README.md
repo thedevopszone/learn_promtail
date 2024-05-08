@@ -5,7 +5,6 @@
 ```
 wget https://github.com/grafana/loki/releases/download/v2.9.8/promtail-linux-amd64.zip
 unzip promtail-linux-amd64.zip
-cd promtail-linux-amd64
 
 sudo chmod a+x "promtail-linux-amd64"
 
