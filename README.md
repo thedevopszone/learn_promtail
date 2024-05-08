@@ -9,7 +9,7 @@ cd promtail-linux-amd64
 
 sudo chmod a+x "promtail-linux-amd64"
 
-cp promtail-linux-amd64 /usr/local/bin/
+cp promtail-linux-amd64 /usr/local/bin/promtail
 ```
 
 ```
@@ -73,7 +73,7 @@ After=network.target
 [Service]
 Type=simple
 User=promtail
-ExecStart=/usr/local/bin/promtail-linux-amd64 -config.file /etc/promtail/config-promtail.yml
+ExecStart=/usr/local/bin/promtail -config.file /etc/promtail/config-promtail.yml
 
 [Install]
 WantedBy=multi-user.target
@@ -88,7 +88,7 @@ After=network.target
 [Service]
 Type=simple
 User=promtail
-ExecStart=/usr/local/bin/./promtail-linux-amd64 -config.file /etc/loki/promtail.yaml
+ExecStart=/usr/local/bin/./promtail -config.file /etc/loki/promtail.yaml
 Restart=on-abort
 NoNewPrivileges=true
 PrivateTmp=yes
