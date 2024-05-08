@@ -9,6 +9,8 @@ unzip promtail-linux-amd64.zip
 sudo chmod a+x "promtail-linux-amd64"
 
 cp promtail-linux-amd64 /usr/local/bin/promtail
+
+export PATH=$PATH:/usr/local/bin
 ```
 
 ```
