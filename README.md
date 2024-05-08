@@ -137,6 +137,42 @@ On Linux, you can check the syslog for any Promtail related entries by using the
 tail -f /var/log/syslog | grep promtail
 ```
 
+##  Pipe data to Promtail
 
+```
+send logs to a local Loki instance:
+cat my.log | promtail --stdin  --client.url http://127.0.0.1:3100/loki/api/v1/push
+
+You can also add additional labels from command line using:
+cat my.log | promtail --stdin  --client.url http://127.0.0.1:3100/loki/api/v1/push --client.external-labels=k1=v1,k2=v2
+
+This will add labels k1 and k2 with respective values v1 and v2.
+
+To force Promtail to re-send log messages, delete the positions file (default location /tmp/positions.yaml).
+
+```
+
+## Test Loki
+
+First, start Promtail
+```
+sudo runuser -l promtail -c "/usr/local/bin/./promtail-linux-amd64 -log.level=debug -config.file=/etc/loki/promtail.yaml"
+```
+
+Note: If you try to run promtail with runuser and you get This account is currently not available. there is no valid shell for the promtail user. Add a shell with the chsh-command:
+```
+sudo chsh -s /bin/bash promtail
+```
+
+Make sure there are actual events in the logs. See if anything appears in Loki. If not, after at least 60 seconds, start (or restart) Loki. From the command line:
+```
+sudo loki -log.level=debug -config.file=/etc/loki/config.yml
+```
+
+Next, see if Promtail is working
+```
+http://server-ip-address:9080/targets
+http://server-ip-address:9080/service-discovery
+```
 
 
