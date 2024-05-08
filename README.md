@@ -124,11 +124,38 @@ msg="error creating promtail" error="open /tmp/positions.yaml: permission denied
 chown promtail:promtail /tmp/positions.yaml
 ```
 
+OR
+
+```
+getfacl /var/log/fail2ban.log
+
+This is typically he result of adding a log after running setfacl above. Running setfacl again gives the promtail-user read access to the log:
+sudo setfacl -R -m u:promtail:rX /var/log
+```
+
+
+
+
 If you set up Promtail service with to run as a specific user, and you are using Promtail to view adm and you don't see any data in Grafana, but you can see the job name, then possibly you need to add the user Promtail to the adm group.
 ```
 usermod -a -G adm promtail
 ```
 You may need to restart the Promtail service and checking again its status
+
+
+Error: Account not available
+If you try to run promtail with runuser
+```
+sudo runuser -l promtail -c "promtail -log.level=debug -config.file=/etc/loki/promtail.yaml"
+and you get: This account is currently not available.
+
+there is no valid shell for the promtail user. Add a shell with the chsh-command:
+$ sudo chsh -s /bin/bash promtail
+```
+
+
+
+
 
 If you see the error "found character that cannot start any token" than that is likely to mean you have a tab somewhere in the YML indenting one of the tokens. Replace it with spaces.
 
