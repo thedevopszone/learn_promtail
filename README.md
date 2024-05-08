@@ -47,6 +47,20 @@ There may be changes to this config depending on any future updates to Loki.
 
 ```
 sudo useradd --system promtail
+
+sudo setfacl -R -m u:promtail:rX /var/log
+OBS: You may have to install the acl package to run setfacl.
+
+sudo chown promtail:promtail /tmp/positions.yaml
+sudo usermod -a -G systemd-journal promtail
+sudo usermod -a -G adm promtail
+
+give the user r-x permissions on /var/log and all the subfolders with acls.
+Giving 755 permission to the folder that contains the log files, saved my day
+
+
+sudo touch /tmp/positions.yaml
+sudo chown promtail:promtail /tmp/positions.yaml
 ```
 
 
@@ -60,6 +74,31 @@ After=network.target
 Type=simple
 User=promtail
 ExecStart=/usr/local/bin/promtail-linux-amd64 -config.file /etc/promtail/config-promtail.yml
+
+[Install]
+WantedBy=multi-user.target
+```
+
+OR BIGGER  
+```
+[Unit]
+Description=Promtail for Loki
+After=network.target
+
+[Service]
+Type=simple
+User=promtail
+ExecStart=/usr/local/bin/./promtail-linux-amd64 -config.file /etc/loki/promtail.yaml
+Restart=on-abort
+NoNewPrivileges=true
+PrivateTmp=yes
+RestrictNamespaces=uts ipc pid user cgroup
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectSystem=strict
+PrivateUsers=strict
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE CAP_DAC_READ_SEARCH
 
 [Install]
 WantedBy=multi-user.target
@@ -132,6 +171,33 @@ getfacl /var/log/fail2ban.log
 This is typically he result of adding a log after running setfacl above. Running setfacl again gives the promtail-user read access to the log:
 sudo setfacl -R -m u:promtail:rX /var/log
 ```
+
+
+Error: Connection refused
+```
+This is usually a firewall-related problem. Check that you have opened the right ports.
+```
+
+
+
+
+Error: We can see that promtail is the user for the executable, and it appears to have the correct permissions. Let's take a look at the ACL:
+```
+getfacl /usr/local/bin/promtail-linux-amd64
+
+
+That looks good as well. However, we can see from the directory listing that SELinux is controlling access (some of the files has "." at the end). Is SELinux active and what SELinux context does the file have?
+
+[root@localhost ~]# ls -Z /usr/local/bin/loki-linux-amd64
+unconfined_u:object_r:admin_home_t:s0 /usr/local/bin/loki-linux-amd64
+
+Here is the problem. promtail cannot run files in the admin_home_t. Other running services have bin_t. Let's change that:
+
+semanage fcontext -a -t bin_t /usr/local/bin/promtail-linux-amd64
+restorecon -v /usr/local/bin/promtail-linux-amd64
+
+```
+
 
 
 
